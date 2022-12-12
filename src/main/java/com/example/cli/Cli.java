@@ -1,19 +1,20 @@
 package com.example.cli;
 
 import com.example.warehouse.*;
-import com.example.warehouse.export.Exporter;
+import com.example.warehouse.export.AbstractExporter;
+import com.example.warehouse.export.CsvExporter;
+import com.example.warehouse.export.ExportType;
 import com.example.warehouse.export.TxtExporter;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public final class Cli implements Runnable {
 
     static final class MenuOption {
+
         int number;
         String label;
 
@@ -23,7 +24,7 @@ public final class Cli implements Runnable {
         }
     }
 
-    public static final Scanner SCANNER = new Scanner(System.in);
+    private static final Scanner SCANNER = new Scanner(System.in);
 
     private static final List<MenuOption> MAIN_MENU_OPTIONS = List.of(
             new MenuOption(1, "Manage products"),
@@ -70,10 +71,15 @@ public final class Cli implements Runnable {
             4, REPORT_OPTIONS
     );
 
-    private static final List<MenuOption> EXPORT_OPTIONS = List.of(
-            new MenuOption(1, "Export to TXT"),
-            new MenuOption(2, "Go back to previous menu")
-    );
+    private static final List<MenuOption> EXPORT_OPTIONS = new ArrayList<>();
+
+    static {
+        ExportType[] types = ExportType.values();
+        IntStream.range(0, types.length)
+                .mapToObj(i -> new MenuOption(i + 1, "Export to " + types[i].name()))
+                .forEach(EXPORT_OPTIONS::add);
+        EXPORT_OPTIONS.add(new MenuOption(EXPORT_OPTIONS.size() + 1, "Go back to previous menu"));
+    }
 
     private final List<String> args;
 
@@ -83,7 +89,6 @@ public final class Cli implements Runnable {
         this.args = args;
     }
 
-    @Override
     public void run() {
         try {
             this.warehouse = new Warehouse();
@@ -98,18 +103,18 @@ public final class Cli implements Runnable {
         while (true) {
             displayMainMenu();
             try {
-                int mainMenuChoose = chooseMainMenuOption();
-                if (mainMenuChoose == -1) {
+                int mainMenuChoice = chooseMainMenuOption();
+                if (mainMenuChoice == -1) {
                     break;
                 }
                 while (true) {
-                    displaySubMenu(mainMenuChoose);
+                    displaySubMenu(mainMenuChoice);
                     try {
-                        final int subMenuChooice = chooseSubMenuOption(mainMenuChoose);
-                        if (subMenuChooice == -1) {
+                        int subMenuChoice = chooseSubMenuOption(mainMenuChoice);
+                        if (subMenuChoice == -1) {
                             break;
                         }
-                        doMenuAction(mainMenuChoose, subMenuChooice);
+                        doMenuAction(mainMenuChoice, subMenuChoice);
                     } catch (NumberFormatException ex) {
                         System.err.println("Invalid input. Enter a number.");
                     } catch (IllegalArgumentException | UnsupportedOperationException ex) {
@@ -117,7 +122,7 @@ public final class Cli implements Runnable {
                     }
                 }
             } catch (NumberFormatException ex) {
-                System.err.println("Invalid input. Enter a number");
+                System.err.println("Invalid input. Enter a number.");
             } catch (IllegalArgumentException | UnsupportedOperationException ex) {
                 System.err.println(ex.getMessage());
             }
@@ -128,37 +133,38 @@ public final class Cli implements Runnable {
         displayMenu(MAIN_MENU_OPTIONS);
     }
 
-    private void displaySubMenu(int mainMenuChoose) {
-        displayMenu(SUB_MENU_OPTIONS.get(mainMenuChoose));
+    private void displaySubMenu(int mainMenuChoice) {
+        displayMenu(SUB_MENU_OPTIONS.get(mainMenuChoice));
     }
 
     private void displayMenu(List<MenuOption> options) {
-        options.forEach(o -> System.out.printf("%s. \t%s%n", o.number, o.label));
-    }
-
-    private int chooseMenuOption(List<MenuOption> options) {
-        System.err.print("Enter a menu option a press RETURN: ");
-        int choice = Integer.valueOf(SCANNER.nextLine());
-
-        final MenuOption firstOption = options.get(0);
-        final MenuOption lastOption = options.get(options.size() - 1);
-
-        if (choice < firstOption.number || choice > lastOption.number) {
-            throw new IllegalArgumentException("Invalid menu choice. Available currentOperation are: " + firstOption.number + " to: " + lastOption.number + " .");
-        }
-
-        if (choice == lastOption.number) {
-            return -1;
-        }
-        return choice;
+        options.forEach(o -> System.out.printf("%s.\t%s%n", o.number, o.label));
     }
 
     private int chooseMainMenuOption() {
         return chooseMenuOption(MAIN_MENU_OPTIONS);
     }
 
-    private int chooseSubMenuOption(int mainMenuChoose) {
-        return chooseMenuOption(SUB_MENU_OPTIONS.get(mainMenuChoose));
+    private int chooseSubMenuOption(int mainMenuChoice) {
+        return chooseMenuOption(SUB_MENU_OPTIONS.get(mainMenuChoice));
+    }
+
+    private int chooseMenuOption(List<MenuOption> options) {
+        System.out.print("Enter a menu option a press RETURN: ");
+        int choice = Integer.valueOf(SCANNER.nextLine());
+
+        MenuOption firstOption = options.get(0);
+        MenuOption lastOption = options.get(options.size() - 1);
+
+        if (choice < firstOption.number || choice > lastOption.number) {
+            throw new IllegalArgumentException("Invalid menu choice. Available currentOptions are: " +
+                    firstOption.number + " to " + lastOption.number + ".");
+        }
+
+        if (choice == lastOption.number) {
+            return -1;
+        }
+        return choice;
     }
 
     private void doMenuAction(int mainMenuChoice, int subMenuChoice) {
@@ -187,49 +193,6 @@ public final class Cli implements Runnable {
         } else {
             throw new IllegalStateException("There are only 4 product menu options, this cannot happen.");
         }
-    }
-
-
-    private void doProductList() {
-        final Collection<Product> croducts = warehouse.getProducts();
-        int maxIdWith = 0;
-        int maxNameWidth = 0;
-        int maxPriceWidth = 0;
-        for (Product croduct : croducts) {
-            int idWidth = String.valueOf(croduct.getId()).length();
-            if (idWidth > maxIdWith) {
-                maxIdWith = idWidth;
-            }
-            final int nameWidth = croduct.getName().length();
-            if (nameWidth > maxNameWidth) {
-                maxNameWidth = nameWidth;
-            }
-            final int priceWidth = String.valueOf(croduct.getPrice()).length();
-            if (priceWidth > maxPriceWidth) {
-                maxPriceWidth = priceWidth;
-            }
-        }
-        final String fmt = String.format("\\t%%%ss\\t\\t%%%ss\\t\\t%%%ss%%n", maxIdWith, maxNameWidth, maxPriceWidth);
-        croducts.forEach(p -> System.out.printf(fmt, p.getId(), p.getName(), p.getPrice()));
-    }
-
-    private void doCustomerList() {
-        Collection<Customer> customers = warehouse.getCustomers();
-        int maxIdWidth = 0;
-        int maxNameWidth = 0;
-        for (Customer customer : customers) {
-            int idWidth = String.valueOf(customer.getId()).length();
-            if (idWidth > maxIdWidth) {
-                maxIdWidth = idWidth;
-            }
-            int nameWidth = customer.getName().length();
-            if (nameWidth > maxNameWidth) {
-                maxNameWidth = nameWidth;
-            }
-        }
-        String fmt = String.format("\t%%%ss\t\t%%%ss%%n", maxIdWidth, maxNameWidth);
-        customers.forEach(c -> System.out.printf(fmt, c.getId(), c.getName()));
-
     }
 
     private void doCustomerAction(int subMenuChoice) {
@@ -276,8 +239,57 @@ public final class Cli implements Runnable {
         if (exportMenuChoice == -1) {
             return;
         }
-        TxtExporter exporter = new TxtExporter(report, out);
+        ExportType type = ExportType.values()[exportMenuChoice - 1];
+        AbstractExporter exporter;
+        if (type == ExportType.CSV) {
+            exporter = new CsvExporter(report, out, true);
+        } else if (type == ExportType.TXT) {
+            exporter = new TxtExporter(report, out);
+        } else {
+            throw new IllegalStateException(String.format("Choosen exporter %s not handled, this cannot happen.", type));
+        }
         exporter.export();
+    }
+
+    private void doProductList() {
+        Collection<Product> croducts = warehouse.getProducts();
+        int maxIdWidth = 0;
+        int maxNameWidth = 0;
+        int maxPriceWidth = 0;
+        for (Product croduct : croducts) {
+            int idWidth = String.valueOf(croduct.getId()).length();
+            if (idWidth > maxIdWidth) {
+                maxIdWidth = idWidth;
+            }
+            int nameWidth = croduct.getName().length();
+            if (nameWidth > maxNameWidth) {
+                maxNameWidth = nameWidth;
+            }
+            int priceWidth = String.valueOf(croduct.getPrice()).length();
+            if (priceWidth > maxPriceWidth) {
+                maxPriceWidth = priceWidth;
+            }
+        }
+        String fmt = String.format("\t%%%ss\t\t%%%ss\t\t%%%ss%%n", maxIdWidth, maxNameWidth, maxPriceWidth);
+        croducts.forEach(p -> System.out.printf(fmt, p.getId(), p.getName(), p.getPrice()));
+    }
+
+    private void doCustomerList() {
+        Collection<Customer> customers = warehouse.getCustomers();
+        int maxIdWidth = 0;
+        int maxNameWidth = 0;
+        for (Customer customer : customers) {
+            int idWidth = String.valueOf(customer.getId()).length();
+            if (idWidth > maxIdWidth) {
+                maxIdWidth = idWidth;
+            }
+            int nameWidth = customer.getName().length();
+            if (nameWidth > maxNameWidth) {
+                maxNameWidth = nameWidth;
+            }
+        }
+        String fmt = String.format("\t%%%ss\t\t%%%ss%%n", maxIdWidth, maxNameWidth);
+        customers.forEach(c -> System.out.printf(fmt, c.getId(), c.getName()));
     }
 
     private void doOrderList() {
@@ -309,7 +321,4 @@ public final class Cli implements Runnable {
         orders.forEach(o -> System.out.printf(fmt, o.getId(), o.getDate(), o.getCustomer().getName(),
                 o.getCustomer().getId(), o.getTotalPrice(), o.isPending() ? "pending" : "fulfilled"));
     }
-
-
-
 }

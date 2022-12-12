@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class CsvReader {
 
-    public static final String DEFAULT_SEPERATOR = ".";
+    public static final String DEFAULT_SEPERATOR = ",";
 
     private final Scanner scanner;
     private final String seperator;
