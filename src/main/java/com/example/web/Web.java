@@ -29,22 +29,11 @@ public class Web implements Runnable {
 
     private final List<String> args;
 
-    private Warehouse warehouse;
-
     public Web(List<String> args) {
         this.args = args;
     }
 
     public void run() {
-        try {
-            this.warehouse = new Warehouse();
-        } catch (FileNotFoundException ex) {
-            System.err.println("Please ensure the required CSV files are present: " + ex.getMessage());
-            System.exit(1);
-        } catch (WarehouseException ex) {
-            System.err.println("Failed to initialize the warehouse: " + ex.getMessage());
-            System.exit(2);
-        }
 
         port(PORT);
         exception(Exception.class, this::handleError);
@@ -74,21 +63,21 @@ public class Web implements Runnable {
     private Object handleProducts(Request req, Response res) {
         Map<String, Object> model = Map.of(
                 "title", "Manage products",
-                "products", warehouse.getProducts());
+                "products", Warehouse.getInstance().getProducts());
         return render(model, "templates/products.html.vm");
     }
 
     private Object handleCustomers(Request req, Response res) {
         Map<String, Object> model = Map.of(
                 "title", "Manage customers",
-                "customers", warehouse.getCustomers());
+                "customers", Warehouse.getInstance().getCustomers());
         return render(model, "templates/customers.html.vm");
     }
 
     private Object handleOrders(Request req, Response res) {
         Map<String, Object> model = Map.of(
                 "title", "Manage orders",
-                "orders", warehouse.getOrders());
+                "orders", Warehouse.getInstance().getOrders());
         return render(model, "templates/orders.html.vm");
     }
 
@@ -100,7 +89,7 @@ public class Web implements Runnable {
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("The product's price must be an integer.", ex);
         }
-        warehouse.addProduct(name, price);
+        Warehouse.getInstance().addProduct(name, price);
         res.redirect("/products");
         return null;
     }
@@ -116,7 +105,7 @@ public class Web implements Runnable {
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("The customer's ID must be an integer.", ex);
         }
-        warehouse.addOrder(customerId, getQuantities(req));
+        Warehouse.getInstance().addOrder(customerId, getQuantities(req));
         res.redirect("/orders");
         return null;
     }

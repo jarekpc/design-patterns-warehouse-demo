@@ -13,6 +13,14 @@ import static java.util.stream.Collectors.summingInt;
 
 public final class Warehouse {
 
+    private static class WarehouseHolder {
+        public static final Warehouse INSTANCE = new Warehouse();
+    }
+
+    public static Warehouse getInstance() {
+        return WarehouseHolder.INSTANCE;
+    }
+
     private static final String DEFAULT_PRODUCTS_CSV_FILE = "products.csv";
     private static final String DEFAULT_INVENTORY_CSV_FILE = "inventory.csv";
     private static final String DEFAULT_CUSTOMERS_CSV_FILE = "customers.csv";
@@ -23,16 +31,24 @@ public final class Warehouse {
     private final Map<Integer, Customer> customers;
     private final List<Order> orders;
 
-    public Warehouse() throws FileNotFoundException, WarehouseException {
+    private Warehouse() {
         this.products = new HashMap<>();
         this.inventory = new HashMap<>();
         this.customers = new HashMap<>();
         this.orders = new ArrayList<>();
 
-        readProducts();
-        readInventory();
-        readCustomers();
-        readOrders();
+        try {
+            readProducts();
+            readInventory();
+            readCustomers();
+            readOrders();
+        } catch (FileNotFoundException ex) {
+            System.err.println("Please ensure the required CSV files are present: " + ex.getMessage());
+            System.exit(1);
+        }catch (WarehouseException ex){
+            System.err.println("Failed to initialize the warehouse: " + ex.getMessage());
+            System.exit(2);
+        }
     }
 
     public synchronized void addOrder(int customerId, Map<Integer, Integer> quantities) {

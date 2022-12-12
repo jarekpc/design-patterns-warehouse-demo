@@ -80,22 +80,11 @@ public final class Cli implements Runnable {
 
     private final List<String> args;
 
-    private Warehouse warehouse;
-
     public Cli(List<String> args) {
         this.args = args;
     }
 
     public void run() {
-        try {
-            this.warehouse = new Warehouse();
-        } catch (FileNotFoundException ex) {
-            System.err.println("Please ensure the required CSV files are present: " + ex.getMessage());
-            System.exit(1);
-        } catch (WarehouseException ex) {
-            System.err.println("Failed to initialize the warehouse: " + ex.getMessage());
-            System.exit(2);
-        }
 
         while (true) {
             displayMainMenu();
@@ -223,7 +212,7 @@ public final class Cli implements Runnable {
     private void doReportAction(int subMenuChoice) {
         Report report;
         if (subMenuChoice == 1) {
-            report = warehouse.generateDailyRevenueReport(Report.Type.DAILY_REVENUE);
+            report = Warehouse.getInstance().generateDailyRevenueReport(Report.Type.DAILY_REVENUE);
         } else {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
@@ -253,7 +242,7 @@ public final class Cli implements Runnable {
     }
 
     private void doProductList() {
-        Collection<Product> croducts = warehouse.getProducts();
+        Collection<Product> croducts = Warehouse.getInstance().getProducts();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
         int maxPriceWidth = 0;
@@ -276,7 +265,7 @@ public final class Cli implements Runnable {
     }
 
     private void doCustomerList() {
-        Collection<Customer> customers = warehouse.getCustomers();
+        Collection<Customer> customers = Warehouse.getInstance().getCustomers();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
         for (Customer customer : customers) {
@@ -294,7 +283,7 @@ public final class Cli implements Runnable {
     }
 
     private void doOrderList() {
-        Collection<Order> orders = warehouse.getOrders();
+        Collection<Order> orders = Warehouse.getInstance().getOrders();
         int maxIdWidth = 0;
         int maxCustomerNameWidth = 0;
         int maxCustomerIdWidth = 0;
