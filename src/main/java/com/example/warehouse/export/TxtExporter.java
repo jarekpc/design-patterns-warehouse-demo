@@ -3,7 +3,6 @@ package com.example.warehouse.export;
 import com.example.warehouse.Report;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,21 +27,6 @@ public class TxtExporter extends AbstractExporter {
                 + LEFT_BORDER.length()
                 + SEPARATOR.length() * (report.getLabels().size() - 1)
                 + RIGHT_BORDER.length();
-    }
-
-    private List<Integer> calcWidths(Report report) {
-        List<Integer> widths = new ArrayList<>();
-        report.getLabels().forEach(l -> widths.add(l.length()));
-        for (List<String> record : report.getRecords()) {
-            for (int i = 0; i < widths.size(); i++) {
-                int maxWidth = widths.get(i);
-                int width = record.get(i).length();
-                if (width > maxWidth) {
-                    widths.set(i, width);
-                }
-            }
-        }
-        return widths;
     }
 
     @Override
