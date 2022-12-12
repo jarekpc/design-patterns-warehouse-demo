@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractExporter {
+public abstract class AbstractExporter implements Exporter {
 
     private final Report report;
     private final PrintStream out;
@@ -16,7 +16,8 @@ public abstract class AbstractExporter {
         this.out = out;
     }
 
-    public final void export(){
+    @Override
+    public void export() {
         beforeLabels(out);
         handleLabels(out, report.getLabels());
         afterLabels(out);
