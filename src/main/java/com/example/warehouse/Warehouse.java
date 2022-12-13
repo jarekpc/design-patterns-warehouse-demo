@@ -18,10 +18,10 @@ public final class Warehouse {
         return WarehouseHolder.INSTANCE;
     }
 
-    private final ProductDao productDao = MemoryProductDao.getInstance();
-    private final CustomerDao customerDao = MemoryCustomerDao.getInstance();
-    private final InventoryDao inventoryDao = MemoryInventoryDao.getInstance();
-    private final OrderDao orderDao = MemoryOrderDao.getInstance();
+    private final ProductDao productDao = new MemoryProductDao();
+    private final CustomerDao customerDao = new DbCustomerDao();
+    private final InventoryDao inventoryDao = new MemoryInventoryDao(productDao);
+    private final OrderDao orderDao = new MemoryOrderDao(productDao, customerDao);
 
     private Warehouse() {
     }
@@ -36,7 +36,7 @@ public final class Warehouse {
         }
         Map<Product, Integer> mappedQuantities = new HashMap<>();
         for (var entry : quantities.entrySet()) {
-            Product product = MemoryProductDao.getInstance().getProduct(entry.getKey());
+            Product product = productDao.getProduct(entry.getKey());
             if (product == null) {
                 throw new IllegalArgumentException("Unknown product ID: " + entry.getKey());
             }
@@ -47,9 +47,9 @@ public final class Warehouse {
 
             mappedQuantities.put(product, quantity);
         }
-        MemoryInventoryDao.getInstance().updateStock(mappedQuantities);
+        inventoryDao.updateStock(mappedQuantities);
         Order order = new Order(customer, mappedQuantities);
-        MemoryOrderDao.getInstance().addOrder(order);
+        orderDao.addOrder(order);
     }
 
 
@@ -58,7 +58,7 @@ public final class Warehouse {
             throw new IllegalArgumentException("The product's price cannot be negative.");
         }
         Product product = new Product(name, price);
-        MemoryProductDao.getInstance().addProduct(product);
+        productDao.addProduct(product);
     }
 
     public Collection<Product> getProducts() {
@@ -94,7 +94,7 @@ public final class Warehouse {
         Report report = new Report();
         report.addLabel("Date");
         report.addLabel("Total revenue");
-        MemoryOrderDao.getInstance().getOrders().stream()
+        orderDao.getOrders().stream()
                 .filter(o -> !o.isPending())
                 .sorted()
                 .collect(groupingBy(Order::getDate, LinkedHashMap::new, summingInt(Order::getTotalPrice)))
