@@ -7,7 +7,18 @@ import java.util.stream.Collectors;
 public class Report {
 
     public enum Type {
-        DAILY_REVENUE;
+        //        DAILY_REVENUE;
+        DAILY_REVENUE("Daily revenue report");
+
+        private final String displayName;
+
+        Type(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     private List<String> labels;
@@ -26,11 +37,11 @@ public class Report {
         return records;
     }
 
-    void addLabel(String label){
+    void addLabel(String label) {
         labels.add(label);
     }
 
-    void addRecord(List<Object> record){
+    void addRecord(List<Object> record) {
         records.add(record.stream().map(String::valueOf).collect(Collectors.toList()));
     }
 }
