@@ -1,5 +1,6 @@
 package com.example.cli;
 
+import com.example.AbstractApp;
 import com.example.warehouse.*;
 import com.example.warehouse.export.*;
 
@@ -7,7 +8,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public final class Cli implements Runnable {
+public final class Cli extends AbstractApp implements Runnable {
 
     static final class MenuOption {
 
@@ -218,7 +219,8 @@ public final class Cli implements Runnable {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
         doReportExport(report, System.out);
-        //INFO this where delilivery need to started
+
+        deliver();
     }
 
     private void doReportExport(Report report, PrintStream out) {
