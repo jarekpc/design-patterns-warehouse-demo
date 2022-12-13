@@ -218,6 +218,7 @@ public final class Cli implements Runnable {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
         doReportExport(report, System.out);
+        //INFO this where delilivery need to started
     }
 
     private void doReportExport(Report report, PrintStream out) {

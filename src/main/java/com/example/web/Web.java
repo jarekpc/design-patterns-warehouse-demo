@@ -1,12 +1,17 @@
 package com.example.web;
 
+import com.example.warehouse.Report;
 import com.example.warehouse.Warehouse;
 import com.example.warehouse.WarehouseException;
+import com.example.warehouse.export.*;
+import com.example.warehouse.util.HtmlEscaperOutputStream;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 import spark.template.velocity.VelocityTemplateEngine;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -45,6 +50,7 @@ public class Web implements Runnable {
         post("/products/add", this::handleAddProduct);
         post("/customers/add", this::handleAddCustomer);
         post("/orders/add", this::handleAddOrder);
+        get("/reports/export", this::handleExportReport);
     }
 
     private <T extends Exception> void handleError(T t, Request req, Response res) {
@@ -142,4 +148,38 @@ public class Web implements Runnable {
         }
         return result;
     }
+
+    private Object handleExportReport(Request req, Response res) throws WarehouseException {
+        Report.Type reportType;
+        ExportType exportType;
+        try {
+            reportType = Report.Type.valueOf(req.queryParams("reportType"));
+            exportType = ExportType.valueOf(req.queryParams("exportType"));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Report and export type must be specified.", ex);
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Report report = warehouse.generateReport(reportType);
+        Exporter exporter;
+        if (exportType == ExportType.CSV) {
+            exporter = new CsvExporter(report, new PrintStream(baos), true);
+        } else if (exportType == ExportType.TXT) {
+            exporter = new TxtExporter(report, new PrintStream(baos));
+        } else if (exportType == ExportType.HTML) {
+            exporter = new HtmlExporter(report, new PrintStream(new HtmlEscaperOutputStream(baos)));
+        } else if (exportType == ExportType.JSON) {
+            exporter = new JsonExporter(report, new PrintStream(baos));
+        } else {
+            throw new IllegalStateException(String.format("Choosen exporter %s not handled, this cannot happen.", reportType));
+        }
+        exporter.export();
+
+        //INFO: this is where the delivery need to be started
+
+        Map<String, Object> model = Map.of(
+                "title", String.format("%s %s export", reportType.getDisplayName(), exportType),
+                "export", baos.toString());
+        return render(model, "templates/export-report.html.vm");
+    }
+
 }
