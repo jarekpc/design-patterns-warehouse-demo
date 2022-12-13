@@ -1,23 +1,14 @@
 package com.example.warehouse;
 
+import com.example.Main;
 import com.example.warehouse.dal.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingInt;
+import static java.util.stream.Collectors.*;
 
 public final class Warehouse {
-
-//    private static class WarehouseHolder {
-//        public static final Warehouse INSTANCE = new Warehouse();
-//    }
-//
-//    public static Warehouse getInstance() {
-//        return WarehouseHolder.INSTANCE;
-//    }
-
     private final ProductDao productDao;// = new MemoryProductDao();
     private final CustomerDao customerDao;// = new DbCustomerDao();
     private final InventoryDao inventoryDao;// = new MemoryInventoryDao(productDao);
@@ -89,7 +80,13 @@ public final class Warehouse {
 
     public Report generateReport(Report.Type type) {
         if (type == Report.Type.DAILY_REVENUE) {
-            return generateDailyRevenueReport();
+            if (Main.CLIENT_ID == 1) {
+                return generateDailyRevenueReport();
+            } else if (Main.CLIENT_ID == 2) {
+                return generateDailyRevenueReport2();
+            } else {
+                throw new IllegalStateException("Unknown client ID: " + Main.CLIENT_ID);
+            }
         }
         throw new UnsupportedOperationException(String.format("Report type: %s not yet implemented.", type));
     }
@@ -105,5 +102,35 @@ public final class Warehouse {
                 .forEach((date, totalRevenue) -> report.addRecord(Arrays.asList(date, totalRevenue)));
         return report;
     }
+
+    public Report generateDailyRevenueReport2() {
+        final Report report = new Report();
+        report.addLabel("Date");
+        report.addLabel("Total products");
+        report.addLabel("Total revenue");
+
+        orderDao.getOrders()
+                .stream()
+                .sorted()
+                .collect(groupingBy(Order::getDate, LinkedHashMap::new, toList()))
+                .forEach((date, orders) -> report.addRecord(Arrays.asList(
+                        date,
+                        orders
+                                .stream()
+                                .sorted()
+                                .map(Order::getQuantities)
+                                .map(Map::values)
+                                .flatMap(Collection::stream)
+                                .mapToInt(Integer::intValue)
+                                .sum(),
+                        orders
+                                .stream()
+                                .sorted()
+                                .mapToInt(Order::getTotalPrice)
+                                .sum()
+                )));
+        return report;
+    }
+
 
 }
