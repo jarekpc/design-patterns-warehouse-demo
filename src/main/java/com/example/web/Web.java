@@ -67,7 +67,7 @@ public class Web implements Runnable {
         return render(model, "templates/products.html.vm");
     }
 
-    private Object handleCustomers(Request req, Response res) {
+    private Object handleCustomers(Request req, Response res) throws WarehouseException {
         Map<String, Object> model = Map.of(
                 "title", "Manage customers",
                 "customers", Warehouse.getInstance().getCustomers());

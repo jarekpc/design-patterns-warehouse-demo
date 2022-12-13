@@ -3,7 +3,6 @@ package com.example.cli;
 import com.example.warehouse.*;
 import com.example.warehouse.export.*;
 
-import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -103,7 +102,7 @@ public final class Cli implements Runnable {
                         doMenuAction(mainMenuChoice, subMenuChoice);
                     } catch (NumberFormatException ex) {
                         System.err.println("Invalid input. Enter a number.");
-                    } catch (IllegalArgumentException | UnsupportedOperationException ex) {
+                    } catch (WarehouseException | IllegalArgumentException | UnsupportedOperationException ex) {
                         System.err.println(ex.getMessage());
                     }
                 }
@@ -153,7 +152,7 @@ public final class Cli implements Runnable {
         return choice;
     }
 
-    private void doMenuAction(int mainMenuChoice, int subMenuChoice) {
+    private void doMenuAction(int mainMenuChoice, int subMenuChoice) throws WarehouseException {
         if (mainMenuChoice == 1) {
             doProductAction(subMenuChoice);
         } else if (mainMenuChoice == 2) {
@@ -181,7 +180,7 @@ public final class Cli implements Runnable {
         }
     }
 
-    private void doCustomerAction(int subMenuChoice) {
+    private void doCustomerAction(int subMenuChoice) throws WarehouseException {
         if (subMenuChoice == 1) {
             doCustomerList();
         } else if (subMenuChoice == 2) {
@@ -264,7 +263,7 @@ public final class Cli implements Runnable {
         croducts.forEach(p -> System.out.printf(fmt, p.getId(), p.getName(), p.getPrice()));
     }
 
-    private void doCustomerList() {
+    private void doCustomerList() throws WarehouseException {
         Collection<Customer> customers = Warehouse.getInstance().getCustomers();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
