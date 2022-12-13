@@ -78,9 +78,11 @@ public final class Cli implements Runnable {
     }
 
     private final List<String> args;
+    private final Warehouse warehouse;
 
-    public Cli(List<String> args) {
+    public Cli(List<String> args, Warehouse warehouse) {
         this.args = args;
+        this.warehouse = warehouse;
     }
 
     public void run() {
@@ -211,7 +213,7 @@ public final class Cli implements Runnable {
     private void doReportAction(int subMenuChoice) {
         Report report;
         if (subMenuChoice == 1) {
-            report = Warehouse.getInstance().generateReport(Report.Type.DAILY_REVENUE);
+            report = warehouse.generateReport(Report.Type.DAILY_REVENUE);
         } else {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
@@ -241,7 +243,7 @@ public final class Cli implements Runnable {
     }
 
     private void doProductList() {
-        Collection<Product> croducts = Warehouse.getInstance().getProducts();
+        Collection<Product> croducts = warehouse.getProducts();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
         int maxPriceWidth = 0;
@@ -264,7 +266,7 @@ public final class Cli implements Runnable {
     }
 
     private void doCustomerList() throws WarehouseException {
-        Collection<Customer> customers = Warehouse.getInstance().getCustomers();
+        Collection<Customer> customers = warehouse.getCustomers();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
         for (Customer customer : customers) {
@@ -282,7 +284,7 @@ public final class Cli implements Runnable {
     }
 
     private void doOrderList() {
-        Collection<Order> orders = Warehouse.getInstance().getOrders();
+        Collection<Order> orders = warehouse.getOrders();
         int maxIdWidth = 0;
         int maxCustomerNameWidth = 0;
         int maxCustomerIdWidth = 0;

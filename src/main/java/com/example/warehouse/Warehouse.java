@@ -10,20 +10,24 @@ import static java.util.stream.Collectors.summingInt;
 
 public final class Warehouse {
 
-    private static class WarehouseHolder {
-        public static final Warehouse INSTANCE = new Warehouse();
-    }
+//    private static class WarehouseHolder {
+//        public static final Warehouse INSTANCE = new Warehouse();
+//    }
+//
+//    public static Warehouse getInstance() {
+//        return WarehouseHolder.INSTANCE;
+//    }
 
-    public static Warehouse getInstance() {
-        return WarehouseHolder.INSTANCE;
-    }
+    private final ProductDao productDao;// = new MemoryProductDao();
+    private final CustomerDao customerDao;// = new DbCustomerDao();
+    private final InventoryDao inventoryDao;// = new MemoryInventoryDao(productDao);
+    private final OrderDao orderDao;// = new MemoryOrderDao(productDao, customerDao);
 
-    private final ProductDao productDao = new MemoryProductDao();
-    private final CustomerDao customerDao = new DbCustomerDao();
-    private final InventoryDao inventoryDao = new MemoryInventoryDao(productDao);
-    private final OrderDao orderDao = new MemoryOrderDao(productDao, customerDao);
-
-    private Warehouse() {
+    public Warehouse(ProductDao productDao, CustomerDao customerDao, InventoryDao inventoryDao, OrderDao orderDao) {
+        this.productDao = productDao;
+        this.customerDao = customerDao;
+        this.inventoryDao = inventoryDao;
+        this.orderDao = orderDao;
     }
 
     public synchronized void addOrder(int customerId, Map<Integer, Integer> quantities) {
