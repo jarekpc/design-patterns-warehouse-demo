@@ -34,10 +34,12 @@ public class Web implements Runnable {
 
     private final List<String> args;
     private final Warehouse warehouse;
+    private final ReportDelivery reportDelivery;
 
-    public Web(List<String> args, Warehouse warehouse) {
+    public Web(List<String> args, Warehouse warehouse, ReportDelivery reportDelivery) {
         this.args = args;
         this.warehouse = warehouse;
+        this.reportDelivery = reportDelivery;
     }
 
     public void run() {

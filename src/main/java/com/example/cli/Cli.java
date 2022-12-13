@@ -80,10 +80,12 @@ public final class Cli extends AbstractApp implements Runnable {
 
     private final List<String> args;
     private final Warehouse warehouse;
+    private final ReportDelivery reportDelivery;
 
-    public Cli(List<String> args, Warehouse warehouse) {
+    public Cli(List<String> args, Warehouse warehouse, ReportDelivery reportDelivery) {
         this.args = args;
         this.warehouse = warehouse;
+        this.reportDelivery = reportDelivery;
     }
 
     public void run() {
@@ -220,7 +222,6 @@ public final class Cli extends AbstractApp implements Runnable {
         }
         doReportExport(report, System.out);
 
-        ReportDelivery reportDelivery = null; // TODO: "decide" how, when and which implementation to instantiate.
         reportDelivery.deliver();
     }
 

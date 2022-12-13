@@ -1,10 +1,7 @@
 package com.example;
 
 import com.example.cli.Cli;
-import com.example.warehouse.AlternativeReportGeneration;
-import com.example.warehouse.DefaultReportGeneration;
-import com.example.warehouse.ReportGeneration;
-import com.example.warehouse.Warehouse;
+import com.example.warehouse.*;
 import com.example.warehouse.dal.*;
 import com.example.web.Web;
 
@@ -34,8 +31,10 @@ public class Main {
 
         Warehouse warehouse = new Warehouse(productDao, customerDao, inventoryDao, orderDao, reportGeneration);
 
-        new Web(arguments, warehouse).run();
-        new Cli(arguments, warehouse).run();
+        ReportDelivery reportDelivery = null;//TODO decide how implementation
+
+        new Web(arguments, warehouse, reportDelivery).run();
+        new Cli(arguments, warehouse, reportDelivery).run();
 
         System.exit(0);
     }
