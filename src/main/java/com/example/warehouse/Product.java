@@ -4,14 +4,27 @@ import java.util.Objects;
 
 public class Product {
 
-    public final int id;
-    private final String name;
-    private final int price;
+    public int id;
+    private String name;
+    private int price;
 
     public Product(int id, String name, int price) {
         this.id = id;
         this.name = name;
         this.price = price;
+    }
+
+    public Product(String name, int price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    public Product(Product product) {
+        this(product.id, product.name, product.price);
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getId() {

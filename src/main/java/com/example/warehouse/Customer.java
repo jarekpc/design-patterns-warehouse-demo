@@ -10,6 +10,10 @@ public class Customer {
         this.name = name;
     }
 
+    public Customer(Customer customer) {
+        this(customer.id, customer.name);
+    }
+
     public int getId() {
         return id;
     }

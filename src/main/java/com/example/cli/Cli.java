@@ -212,7 +212,7 @@ public final class Cli implements Runnable {
     private void doReportAction(int subMenuChoice) {
         Report report;
         if (subMenuChoice == 1) {
-            report = Warehouse.getInstance().generateDailyRevenueReport(Report.Type.DAILY_REVENUE);
+            report = Warehouse.getInstance().generateReport(Report.Type.DAILY_REVENUE);
         } else {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
