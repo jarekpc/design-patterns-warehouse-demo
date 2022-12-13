@@ -220,7 +220,8 @@ public final class Cli extends AbstractApp implements Runnable {
         }
         doReportExport(report, System.out);
 
-        deliver();
+        ReportDelivery reportDelivery = null; // TODO: "decide" how, when and which implementation to instantiate.
+        reportDelivery.deliver();
     }
 
     private void doReportExport(Report report, PrintStream out) {

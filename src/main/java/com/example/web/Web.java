@@ -1,6 +1,7 @@
 package com.example.web;
 
 import com.example.warehouse.Report;
+import com.example.warehouse.ReportDelivery;
 import com.example.warehouse.Warehouse;
 import com.example.warehouse.WarehouseException;
 import com.example.warehouse.export.*;
@@ -174,7 +175,8 @@ public class Web implements Runnable {
         }
         exporter.export();
 
-        //INFO: this is where the delivery need to be started
+        ReportDelivery reportDelivery = null; // TODO: "decide" how, when and which implementation to instantiate.
+        reportDelivery.deliver();
 
         Map<String, Object> model = Map.of(
                 "title", String.format("%s %s export", reportType.getDisplayName(), exportType),
