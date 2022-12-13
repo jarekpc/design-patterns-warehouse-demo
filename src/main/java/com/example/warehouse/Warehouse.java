@@ -18,6 +18,11 @@ public final class Warehouse {
         return WarehouseHolder.INSTANCE;
     }
 
+    private final ProductDao productDao = MemoryProductDao.getInstance();
+    private final CustomerDao customerDao = MemoryCustomerDao.getInstance();
+    private final InventoryDao inventoryDao = MemoryInventoryDao.getInstance();
+    private final OrderDao orderDao = MemoryOrderDao.getInstance();
+
     private Warehouse() {
     }
 
@@ -57,21 +62,21 @@ public final class Warehouse {
     }
 
     public Collection<Product> getProducts() {
-        return MemoryProductDao.getInstance().getProducts()
+        return productDao.getProducts()
                 .stream()
                 .sorted(Comparator.comparing(Product::getId))
                 .collect(Collectors.toUnmodifiableList());
     }
 
     public Collection<Customer> getCustomers() {
-        return MemoryCustomerDao.getInstance().getCustomers()
+        return customerDao.getCustomers()
                 .stream()
                 .sorted(Comparator.comparingInt(Customer::getId))
                 .collect(Collectors.toUnmodifiableList());
     }
 
     public Collection<Order> getOrders() {
-        return MemoryOrderDao.getInstance().getOrders()
+        return orderDao.getOrders()
                 .stream()
                 .sorted()
                 .sorted(Comparator.comparing(Order::getId))
