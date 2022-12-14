@@ -177,7 +177,11 @@ public class Web implements Runnable {
         }
         exporter.export();
 
-        reportDelivery.deliver(reportType, exportType, baos.toByteArray());
+        try {
+            reportDelivery.deliver(reportType, exportType, baos.toByteArray());
+        } catch (IllegalStateException ex) {
+            ex.printStackTrace();
+        }
 
         Map<String, Object> model = Map.of(
                 "title", String.format("%s %s export", reportType.getDisplayName(), exportType),

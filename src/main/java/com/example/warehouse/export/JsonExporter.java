@@ -5,49 +5,48 @@ import com.example.warehouse.Report;
 import java.io.PrintStream;
 import java.util.List;
 
-public class JsonExporter extends AbstractExporter {
+public class JsonExporter implements Exporter {
 
-    private List<String> labels;
-
+    private final Report report;
+    private final PrintStream out;
 
     public JsonExporter(Report report, PrintStream out) {
-        super(report, out);
+        this.report = report;
+        this.out = out;
     }
 
     @Override
-    protected void handleLabels(PrintStream out, List<String> labels) {
-        this.labels = labels;
-    }
-
-    @Override
-    protected void beforeRecords(PrintStream out) {
+    public void export() {
         out.println("[");
-    }
-
-    @Override
-    protected void handleRecord(PrintStream out, List<String> records, boolean first, boolean last) {
-        out.println("\t{");
-        for (int i = 0; i < labels.size(); i++) {
-            String label = labels.get(i);
-            String field = records.get(i);
-            out.printf("\t\t\"%s\": ", label);
-            if (i == 0) {
-                // string field
-                out.printf("\"%s\",%n", field);
-            } else if (i == 1) {
-                // number field
-                out.printf("%s%n", field);
+        List<List<String>> records = report.getRecords();
+        for (int i = 0; i < records.size(); i++) {
+            out.println("\t{");
+            List<String> record = records.get(i);
+            for (int j = 0; j < report.getLabels().size(); j++) {
+                String label = report.getLabels().get(j);
+                String field = record.get(j);
+                out.printf("\t\t\"%s\": ", label);
+                if (j == 0) {
+                    // string field
+                    out.printf("\"%s\"", field);
+                } else {
+                    // TODO: this is a hack, it is assumed that every JSON field will be a number field
+                    // expect the very first. This exporter needs type information to work correctly,
+                    // others don't and this piece of information is not available here.
+                    // number field
+                    out.printf("%s", field);
+                }
+                if (j != report.getLabels().size() - 1) {
+                    out.print(",");
+                }
+                out.printf("%n");
             }
+            out.print("\t}");
+            if (i != records.size() - 1) {
+                out.print(",");
+            }
+            out.println();
         }
-        out.print("\t}");
-        if (!last) {
-            out.print(",");
-        }
-        out.println();
-    }
-
-    @Override
-    protected void afterRecords(PrintStream out) {
         out.println("]");
     }
 }
