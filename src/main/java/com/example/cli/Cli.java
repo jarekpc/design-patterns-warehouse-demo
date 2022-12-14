@@ -1,11 +1,18 @@
 package com.example.cli;
 
-import com.example.AbstractApp;
+import com.example.Main;
 import com.example.warehouse.*;
-import com.example.warehouse.export.*;
+import com.example.warehouse.export.ExportType;
+import com.example.warehouse.export.Exporter;
+import com.example.warehouse.export.ExporterFactory;
+import com.example.warehouse.plot.ChartPlotter;
+import com.example.warehouse.plot.ChartType;
+import com.example.warehouse.plot.ComplexChartPlotter;
+import com.example.warehouse.plot.DummyChartPlotter;
 import com.example.warehouse.util.CopyByteArrayOutputStream;
 
-import java.io.PrintStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -29,8 +36,9 @@ public class Cli implements Runnable {
             new MenuOption(2, "Manage customers"),
             new MenuOption(3, "Manage orders"),
             new MenuOption(4, "Export reports"),
-            new MenuOption(5, "Settings"),
-            new MenuOption(6, "Exit program")
+            new MenuOption(5, "Report charts"),
+            new MenuOption(6, "Settings"),
+            new MenuOption(7, "Exit program")
     );
 
     private static final List<MenuOption> PRODUCT_OPTIONS = List.of(
@@ -73,7 +81,8 @@ public class Cli implements Runnable {
             2, CUSTOMER_OPTIONS,
             3, ORDER_OPTIONS,
             4, REPORT_OPTIONS,
-            5, SETTINGS
+            5, REPORT_OPTIONS,
+            6, SETTINGS
     );
 
     private static final List<MenuOption> EXPORT_OPTIONS = new ArrayList<>();
@@ -84,6 +93,16 @@ public class Cli implements Runnable {
                 .mapToObj(i -> new MenuOption(i + 1, "Export to " + types[i].name()))
                 .forEach(EXPORT_OPTIONS::add);
         EXPORT_OPTIONS.add(new MenuOption(EXPORT_OPTIONS.size() + 1, "Go back to previous menu"));
+    }
+
+    private static final List<MenuOption> CHART_OPTIONS = new ArrayList<>();
+
+    static {
+        ChartType[] types = ChartType.values();
+        IntStream.range(0, types.length)
+                .mapToObj(i -> new MenuOption(i + 1, String.format("Create %s plot", types[i].name())))
+                .forEach(CHART_OPTIONS::add);
+        CHART_OPTIONS.add(new MenuOption(CHART_OPTIONS.size() + 1, "Go back to previous menu"));
     }
 
     private final List<MenuOption> reportDeliveryOptions = new ArrayList<>();
@@ -106,6 +125,42 @@ public class Cli implements Runnable {
         createReportDeliveryOptions();
 
     }
+
+    private void doChartAction(int subMenuChoice) throws WarehouseException {
+        Report.Type reportType;
+        if (subMenuChoice == 1) {
+            reportType = Report.Type.DAILY_REVENUE;
+        } else {
+            throw new IllegalStateException("There are no such menu option, this cannot happen.");
+        }
+        Report report = warehouse.generateReport(reportType);
+
+        ChartType chartType;
+        displayMenu(CHART_OPTIONS);
+        int exportMenuChoice = chooseMenuOption(CHART_OPTIONS);
+        if (exportMenuChoice == -1) {
+            return;
+        }
+        chartType = ChartType.values()[exportMenuChoice - 1];
+
+        ChartPlotter plotter;
+        if (Main.FULL_VERSION) {
+            plotter = new ComplexChartPlotter(reportType, chartType);
+        } else {
+            plotter = new DummyChartPlotter();
+        }
+
+        try {
+            File file = Files.createTempFile(null, ".png").toFile();
+            try (OutputStream out = new FileOutputStream(file)) {
+                plotter.plot(report, out);
+            }
+            System.out.printf("Chart created at: %s%n", file.toPath().toUri());
+        } catch (IOException ex) {
+            throw new WarehouseException("Problem while creating chart.", ex);
+        }
+    }
+
 
     private void createReportDeliveryOptions() {
         int i;
@@ -193,7 +248,9 @@ public class Cli implements Runnable {
             doOrderAction(subMenuChoice);
         } else if (mainMenuChoice == 4) {
             doReportAction(subMenuChoice);
-        } else if(mainMenuChoice == 5){
+        } else if (mainMenuChoice == 5) {
+            doChartAction(subMenuChoice);
+        } else if (mainMenuChoice == 6) {
             doSettingsAction(subMenuChoice);
         } else {
             throw new IllegalStateException("There are no such menu option, this cannot happen.");

@@ -21,31 +21,29 @@ public class AlternativeReportGeneration implements ReportGeneration{
     @Override
     public Report generateReport(Report.Type type) throws WarehouseException {
         checkReportType(type);
-        final Report report = new Report();
+        Report report = new Report();
         report.addLabel("Date");
         report.addLabel("Total products");
         report.addLabel("Total revenue");
-
         orderDao.getOrders()
                 .stream()
                 .sorted()
                 .collect(groupingBy(Order::getDate, LinkedHashMap::new, toList()))
-                .forEach((date, orders) -> report.addRecord(Arrays.asList(
-                        date,
-                        orders
+                .forEach((date, orders) -> report.addRecord(
+                        new Report.Field(Report.DataType.DATE, date),
+                        new Report.Field(Report.DataType.NUMBER, orders
                                 .stream()
                                 .sorted()
                                 .map(Order::getQuantities)
                                 .map(Map::values)
                                 .flatMap(Collection::stream)
                                 .mapToInt(Integer::intValue)
-                                .sum(),
-                        orders
+                                .sum()),
+                        new Report.Field(Report.DataType.NUMBER, orders
                                 .stream()
                                 .sorted()
                                 .mapToInt(Order::getTotalPrice)
-                                .sum()
-                )));
+                                .sum())));
         return report;
     }
 }

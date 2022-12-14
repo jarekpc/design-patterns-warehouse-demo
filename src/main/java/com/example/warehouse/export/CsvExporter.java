@@ -25,8 +25,10 @@ public class CsvExporter extends AbstractExporter {
     }
 
     @Override
-    protected void handleRecord(PrintStream out, List<String> records, boolean first, boolean last) {
-        printStrings(out, records);
+    protected void handleRecord(PrintStream out, List<Report.Field> record, boolean first, boolean last) {
+        printStrings(out, record.stream()
+                .map(Report.Field::getAsString)
+                .collect(Collectors.toList()));
     }
 
     private void printStrings(PrintStream out, List<String> records) {

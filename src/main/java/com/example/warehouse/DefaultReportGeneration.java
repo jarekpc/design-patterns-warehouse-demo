@@ -22,11 +22,14 @@ public class DefaultReportGeneration implements ReportGeneration {
         Report report = new Report();
         report.addLabel("Date");
         report.addLabel("Total revenue");
-        orderDao.getOrders().stream()
+        orderDao.getOrders()
+                .stream()
                 .filter(o -> !o.isPending())
                 .sorted()
                 .collect(groupingBy(Order::getDate, LinkedHashMap::new, summingInt(Order::getTotalPrice)))
-                .forEach((date, totalRevenue) -> report.addRecord(Arrays.asList(date, totalRevenue)));
+                .forEach((date, totalRevenue) -> report.addRecord(
+                        new Report.Field(Report.DataType.DATE, date),
+                        new Report.Field(Report.DataType.NUMBER, totalRevenue)));
         return report;
     }
 

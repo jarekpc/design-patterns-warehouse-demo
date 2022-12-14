@@ -1,8 +1,12 @@
 package com.example.warehouse;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class Report {
 
@@ -21,8 +25,46 @@ public class Report {
         }
     }
 
+    public enum DataType {
+
+        DATE,
+        NUMBER,
+        STRING
+    }
+
+    public static final class Field {
+        private DataType dataType;
+        private Object value;
+
+        public Field(DataType dataType, Object value) {
+            this.dataType = dataType;
+            this.value = value;
+        }
+
+        public DataType getDataType() {
+            return dataType;
+        }
+
+        public LocalDate getAsDate() {
+            if (dataType == DataType.DATE) {
+                return (LocalDate) value;
+            }
+            throw new IllegalStateException("This shouldn't happen.");
+        }
+
+        public Number getAsNumber() {
+            if (dataType == DataType.NUMBER) {
+                return (Number) value;
+            }
+            throw new IllegalStateException("This shouldn't happen.");
+        }
+
+        public String getAsString() {
+            return value.toString();
+        }
+    }
     private List<String> labels;
-    private List<List<String>> records;
+    private List<List<Field>> records;
 
     public Report() {
         this.labels = new ArrayList<>();
@@ -33,7 +75,7 @@ public class Report {
         return labels;
     }
 
-    public List<List<String>> getRecords() {
+    public List<List<Field>> getRecords() {
         return records;
     }
 
@@ -41,7 +83,7 @@ public class Report {
         labels.add(label);
     }
 
-    void addRecord(List<Object> record) {
-        records.add(record.stream().map(String::valueOf).collect(Collectors.toList()));
+    void addRecord(Field... fields) {
+        records.add(Arrays.stream(fields).collect(toList()));
     }
 }
