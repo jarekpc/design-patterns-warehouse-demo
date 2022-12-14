@@ -8,10 +8,7 @@ import spark.Request;
 import spark.Response;
 import spark.template.velocity.VelocityTemplateEngine;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +17,7 @@ import java.util.stream.Collectors;
 
 import static spark.Spark.*;
 
-public class Web implements Runnable {
+public abstract class Web implements Runnable {
     private static final int PORT = 8080;
 
     private static final VelocityTemplateEngine VELOCITY_TEMPLATE_ENGINE = new VelocityTemplateEngine();
@@ -56,6 +53,9 @@ public class Web implements Runnable {
         post("/orders/add", this::handleAddOrder);
         get("/reports/export", this::handleExportReport);
     }
+
+
+    abstract Exporter newExporter(Report report, ExportType exportType, OutputStream baos);
 
     private <T extends Exception> void handleError(T t, Request req, Response res) {
         StringWriter writer = new StringWriter();
