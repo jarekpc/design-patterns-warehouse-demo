@@ -152,7 +152,7 @@ public class Web implements Runnable {
         return result;
     }
 
-    private Object handleExportReport(Request req, Response res) throws WarehouseException {
+    private Object handleExportReport(Request req, Response res) {
         Report.Type reportType;
         ExportType exportType;
         try {
@@ -177,8 +177,7 @@ public class Web implements Runnable {
         }
         exporter.export();
 
-        ReportDelivery reportDelivery = null; // TODO: "decide" how, when and which implementation to instantiate.
-        reportDelivery.deliver();
+        reportDelivery.deliver(reportType, exportType, baos.toByteArray());
 
         Map<String, Object> model = Map.of(
                 "title", String.format("%s %s export", reportType.getDisplayName(), exportType),

@@ -3,6 +3,7 @@ package com.example.cli;
 import com.example.AbstractApp;
 import com.example.warehouse.*;
 import com.example.warehouse.export.*;
+import com.example.warehouse.util.CopyByteArrayOutputStream;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -214,25 +215,31 @@ public final class Cli extends AbstractApp implements Runnable {
     }
 
     private void doReportAction(int subMenuChoice) {
-        Report report;
+        Report.Type reportType;
         if (subMenuChoice == 1) {
-            report = warehouse.generateReport(Report.Type.DAILY_REVENUE);
+            reportType = Report.Type.DAILY_REVENUE;
         } else {
             throw new IllegalStateException("There are only 2 report menu options, this cannot happen.");
         }
-        doReportExport(report, System.out);
+        Report report = warehouse.generateReport(reportType);
 
-        reportDelivery.deliver();
-    }
-
-    private void doReportExport(Report report, PrintStream out) {
+        ExportType exportType;
         displayMenu(EXPORT_OPTIONS);
+
         int exportMenuChoice = chooseMenuOption(EXPORT_OPTIONS);
         if (exportMenuChoice == -1) {
             return;
         }
-        ExportType type = ExportType.values()[exportMenuChoice - 1];
-        AbstractExporter exporter;
+        exportType = ExportType.values()[exportMenuChoice - 1];
+
+        CopyByteArrayOutputStream cos = new CopyByteArrayOutputStream(System.out);
+        doReportExport(report, exportType, new PrintStream(cos));
+
+        reportDelivery.deliver(reportType, exportType, cos.toByteArray());
+    }
+
+    private void doReportExport(Report report, ExportType type, PrintStream out) {
+        Exporter exporter;
         if (type == ExportType.CSV) {
             exporter = new CsvExporter(report, out, true);
         } else if (type == ExportType.TXT) {
