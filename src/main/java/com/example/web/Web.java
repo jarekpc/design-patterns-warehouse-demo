@@ -2,6 +2,7 @@ package com.example.web;
 
 import com.example.warehouse.*;
 import com.example.warehouse.export.*;
+import com.example.warehouse.plot.ChartPlotterFactory;
 import com.example.warehouse.util.HtmlEscaperOutputStream;
 import spark.ModelAndView;
 import spark.Request;
@@ -29,16 +30,19 @@ public class Web implements Runnable {
     private final List<String> args;
 
     private final ExporterFactory exporterFactory;
+
+    private final ChartPlotterFactory plotterFactory;
     private final Warehouse warehouse;
     private final List<ReportDelivery> reportDeliveries;
 
     private ReportDelivery activeReportDelivery;
 
-    public Web(List<String> args,ExporterFactory exporterFactory ,Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
+    public Web(List<String> args,ExporterFactory exporterFactory ,ChartPlotterFactory plotterFactory, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
         this.reportDeliveries = reportDeliveries;
         this.exporterFactory = exporterFactory;
+        this.plotterFactory = plotterFactory;
 
         activeReportDelivery = reportDeliveries.get(0);
     }

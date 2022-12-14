@@ -5,10 +5,7 @@ import com.example.warehouse.*;
 import com.example.warehouse.export.ExportType;
 import com.example.warehouse.export.Exporter;
 import com.example.warehouse.export.ExporterFactory;
-import com.example.warehouse.plot.ChartPlotter;
-import com.example.warehouse.plot.ChartType;
-import com.example.warehouse.plot.ComplexChartPlotter;
-import com.example.warehouse.plot.DummyChartPlotter;
+import com.example.warehouse.plot.*;
 import com.example.warehouse.util.CopyByteArrayOutputStream;
 
 import java.io.*;
@@ -112,13 +109,16 @@ public class Cli implements Runnable {
     private final Warehouse warehouse;
 
     private final List<ReportDelivery> reportDeliveries;
+
+    private final ChartPlotterFactory plotterFactory;
     private ReportDelivery activeReportDelivery;
 
-    public Cli(List<String> args, ExporterFactory exporterFactory, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
+    public Cli(List<String> args, ExporterFactory exporterFactory, ChartPlotterFactory chartPlotterFactory, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
         this.reportDeliveries =  reportDeliveries;
         this.exporterFactory = exporterFactory;
+        this.plotterFactory = chartPlotterFactory;
 
         activeReportDelivery = reportDeliveries.get(0);
 

@@ -3,7 +3,11 @@ package com.example;
 import com.example.cli.Cli;
 import com.example.warehouse.*;
 import com.example.warehouse.export.ExporterFactory;
+import com.example.warehouse.export.FullExporterFactory;
 import com.example.warehouse.export.TrialExporterFactory;
+import com.example.warehouse.plot.ChartPlotterFactory;
+import com.example.warehouse.plot.FullChartPlotterFactory;
+import com.example.warehouse.plot.TrialChartPlotterFactory;
 import com.example.web.Web;
 
 import javax.mail.internet.AddressException;
@@ -31,11 +35,17 @@ public class Main {
             return;
         }
 
-        ExporterFactory exporterFactory = FULL_VERSION
-                ? new ExporterFactory()
-                : new TrialExporterFactory();
-        new Web(arguments, exporterFactory, warehouse, reportDeliveries).run();
-        new Cli(arguments, exporterFactory, warehouse, reportDeliveries).run();
+        ExporterFactory exporterFactory;
+        ChartPlotterFactory plotterFactory;
+        if (FULL_VERSION) {
+            exporterFactory = new FullExporterFactory();
+            plotterFactory = new FullChartPlotterFactory();
+        } else {
+            exporterFactory = new TrialExporterFactory();
+            plotterFactory = new TrialChartPlotterFactory();
+        }
+        new Web(arguments, exporterFactory, plotterFactory, warehouse, reportDeliveries).run();
+        new Cli(arguments, exporterFactory, plotterFactory, warehouse, reportDeliveries).run();
         // INFO: Needed because when Cli exists the Web
         // interface's thread will keep the app hanging.
         System.exit(0);
