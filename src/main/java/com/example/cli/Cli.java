@@ -215,7 +215,7 @@ public final class Cli extends AbstractApp implements Runnable {
         System.out.println(String.format("Selected '%s'.", activeReportDelivery.getName()));
     }
 
-    private void doProductAction(int subMenuChoice) {
+    private void doProductAction(int subMenuChoice) throws WarehouseException {
         if (subMenuChoice == 1) {
             doProductList();
         } else if (subMenuChoice == 2) {
@@ -243,7 +243,7 @@ public final class Cli extends AbstractApp implements Runnable {
         }
     }
 
-    private void doOrderAction(int subMenuChoice) {
+    private void doOrderAction(int subMenuChoice) throws WarehouseException {
         if (subMenuChoice == 1) {
             doOrderList();
         } else if (subMenuChoice == 2) {
@@ -257,7 +257,7 @@ public final class Cli extends AbstractApp implements Runnable {
         }
     }
 
-    private void doReportAction(int subMenuChoice) {
+    private void doReportAction(int subMenuChoice) throws WarehouseException {
         Report.Type reportType;
         if (subMenuChoice == 1) {
             reportType = Report.Type.DAILY_REVENUE;
@@ -301,7 +301,7 @@ public final class Cli extends AbstractApp implements Runnable {
         exporter.export();
     }
 
-    private void doProductList() {
+    private void doProductList() throws WarehouseException {
         Collection<Product> croducts = warehouse.getProducts();
         int maxIdWidth = 0;
         int maxNameWidth = 0;
@@ -342,7 +342,7 @@ public final class Cli extends AbstractApp implements Runnable {
         customers.forEach(c -> System.out.printf(fmt, c.getId(), c.getName()));
     }
 
-    private void doOrderList() {
+    private void doOrderList() throws WarehouseException {
         Collection<Order> orders = warehouse.getOrders();
         int maxIdWidth = 0;
         int maxCustomerNameWidth = 0;

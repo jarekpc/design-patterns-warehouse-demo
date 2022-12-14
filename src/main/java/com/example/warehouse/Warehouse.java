@@ -24,7 +24,7 @@ public final class Warehouse {
         this.reportGeneration = reportGeneration;
     }
 
-    public synchronized void addOrder(int customerId, Map<Integer, Integer> quantities) {
+    public synchronized void addOrder(int customerId, Map<Integer, Integer> quantities) throws WarehouseException {
         if (quantities.isEmpty()) {
             throw new IllegalArgumentException("There has to items in the order, it cannot be empty.");
         }
@@ -51,7 +51,7 @@ public final class Warehouse {
     }
 
 
-    public synchronized void addProduct(String name, int price) {
+    public synchronized void addProduct(String name, int price) throws WarehouseException {
         if (price < 0) {
             throw new IllegalArgumentException("The product's price cannot be negative.");
         }
@@ -59,7 +59,7 @@ public final class Warehouse {
         productDao.addProduct(product);
     }
 
-    public Collection<Product> getProducts() {
+    public Collection<Product> getProducts() throws WarehouseException {
         return productDao.getProducts()
                 .stream()
                 .sorted(Comparator.comparing(Product::getId))
@@ -73,7 +73,7 @@ public final class Warehouse {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public Collection<Order> getOrders() {
+    public Collection<Order> getOrders() throws WarehouseException {
         return orderDao.getOrders()
                 .stream()
                 .sorted()
@@ -81,7 +81,7 @@ public final class Warehouse {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public Report generateReport(Report.Type type) {
+    public Report generateReport(Report.Type type) throws WarehouseException {
         return reportGeneration.generateReport(type);
     }
 

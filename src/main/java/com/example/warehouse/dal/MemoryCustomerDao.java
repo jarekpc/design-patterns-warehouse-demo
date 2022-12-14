@@ -26,7 +26,7 @@ public final class MemoryCustomerDao implements CustomerDao {
 
     private final Map<Integer, Customer> customers;
 
-    private MemoryCustomerDao() {
+    public MemoryCustomerDao() {
         this.customers = new HashMap<>();
         try {
             readCustomers();

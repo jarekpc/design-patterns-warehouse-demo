@@ -19,7 +19,7 @@ public class AlternativeReportGeneration implements ReportGeneration{
     }
 
     @Override
-    public Report generateReport(Report.Type type) {
+    public Report generateReport(Report.Type type) throws WarehouseException {
         checkReportType(type);
         final Report report = new Report();
         report.addLabel("Date");

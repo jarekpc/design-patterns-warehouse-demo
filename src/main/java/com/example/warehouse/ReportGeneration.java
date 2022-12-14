@@ -2,7 +2,7 @@ package com.example.warehouse;
 
 public interface ReportGeneration {
 
-    Report generateReport(Report.Type type);
+    Report generateReport(Report.Type type) throws WarehouseException;
 
     default void checkReportType(Report.Type type) {
         if (type == null) {

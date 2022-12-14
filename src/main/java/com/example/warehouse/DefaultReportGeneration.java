@@ -17,7 +17,7 @@ public class DefaultReportGeneration implements ReportGeneration {
     }
 
     @Override
-    public Report generateReport(Report.Type type) {
+    public Report generateReport(Report.Type type) throws WarehouseException {
         checkReportType(type);
         Report report = new Report();
         report.addLabel("Date");

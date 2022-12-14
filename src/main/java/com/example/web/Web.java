@@ -71,7 +71,7 @@ public class Web implements Runnable {
         return render(Map.of("title", "Index"), "templates/index.html.vm");
     }
 
-    private Object handleProducts(Request req, Response res) {
+    private Object handleProducts(Request req, Response res) throws WarehouseException {
         Map<String, Object> model = Map.of(
                 "title", "Manage products",
                 "products",warehouse.getProducts());
@@ -85,14 +85,14 @@ public class Web implements Runnable {
         return render(model, "templates/customers.html.vm");
     }
 
-    private Object handleOrders(Request req, Response res) {
+    private Object handleOrders(Request req, Response res) throws WarehouseException {
         Map<String, Object> model = Map.of(
                 "title", "Manage orders",
                 "orders", warehouse.getOrders());
         return render(model, "templates/orders.html.vm");
     }
 
-    private Object handleAddProduct(Request req, Response res) {
+    private Object handleAddProduct(Request req, Response res) throws WarehouseException {
         String name = req.queryParams("name");
         int price;
         try {
@@ -109,7 +109,7 @@ public class Web implements Runnable {
         throw new UnsupportedOperationException("Adding customers not yet implemented.");
     }
 
-    private Object handleAddOrder(Request req, Response res) {
+    private Object handleAddOrder(Request req, Response res) throws WarehouseException {
         int customerId;
         try {
             customerId = Integer.valueOf(req.queryParams("customerId"));
@@ -153,7 +153,7 @@ public class Web implements Runnable {
         return result;
     }
 
-    private Object handleExportReport(Request req, Response res) {
+    private Object handleExportReport(Request req, Response res) throws WarehouseException {
         Report.Type reportType;
         ExportType exportType;
         try {
