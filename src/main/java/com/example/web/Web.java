@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 import static spark.Spark.*;
 
-public abstract class Web implements Runnable {
+public class Web implements Runnable {
     private static final int PORT = 8080;
 
     private static final VelocityTemplateEngine VELOCITY_TEMPLATE_ENGINE = new VelocityTemplateEngine();
@@ -27,15 +27,18 @@ public abstract class Web implements Runnable {
     }
 
     private final List<String> args;
+
+    private final ExporterFactory exporterFactory;
     private final Warehouse warehouse;
     private final List<ReportDelivery> reportDeliveries;
 
     private ReportDelivery activeReportDelivery;
 
-    public Web(List<String> args, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
+    public Web(List<String> args,ExporterFactory exporterFactory ,Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
         this.reportDeliveries = reportDeliveries;
+        this.exporterFactory = exporterFactory;
 
         activeReportDelivery = reportDeliveries.get(0);
     }
@@ -48,14 +51,42 @@ public abstract class Web implements Runnable {
         get("/products", this::handleProducts);
         get("/customers", this::handleCustomers);
         get("/orders", this::handleOrders);
+        get("/reports", this::handleReports);
+        get("/reports/export", this::handleExportReport);
+        get("/settings", this::handleSettings);
+        get("/settings/configure-report-delivery", this::handleConfigureReportDelivery);
         post("/products/add", this::handleAddProduct);
         post("/customers/add", this::handleAddCustomer);
         post("/orders/add", this::handleAddOrder);
-        get("/reports/export", this::handleExportReport);
+        post("/settings/configure-report-delivery/:choice", this::handleConfigureReportDelivery);
     }
 
+    private Object handleConfigureReportDelivery(Request req, Response res) {
+        if ("POST".equals(req.requestMethod())) {
+            int choice = Integer.valueOf(req.params(":choice"));
+            activeReportDelivery = reportDeliveries.get(choice - 1);
+            res.redirect("/settings");
+            return null;
+        } else {
+            Map<String, Object> model = Map.of(
+                    "title", "Configure report delivery",
+                    "reportDeliveries", reportDeliveries);
+            return render(model, "templates/configure-report-delivery.html.vm");
+        }
+    }
 
-    abstract Exporter newExporter(Report report, ExportType exportType, OutputStream baos);
+    private Object handleSettings(Request req, Response res) {
+        Map<String, Object> model = Map.of("title", "Manage settings");
+        return render(model, "templates/settings.html.vm");
+    }
+
+    private Object handleReports(Request req, Response res) {
+        Map<String, Object> model = Map.of(
+                "title", "Manage reports",
+                "exportTypes", ExportType.values(),
+                "reportTypes", Report.Type.values());
+        return render(model, "templates/reports.html.vm");
+    }
 
     private <T extends Exception> void handleError(T t, Request req, Response res) {
         StringWriter writer = new StringWriter();
@@ -164,32 +195,41 @@ public abstract class Web implements Runnable {
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Report report = warehouse.generateReport(reportType);
-        Exporter exporter;
-        if (exportType == ExportType.CSV) {
-            exporter = new CsvExporter(report, new PrintStream(baos), true);
-        } else if (exportType == ExportType.TXT) {
-            exporter = new TxtExporter(report, new PrintStream(baos));
-        } else if (exportType == ExportType.HTML) {
-            exporter = new HtmlExporter(report, new PrintStream(new HtmlEscaperOutputStream(baos)));
-        } else if (exportType == ExportType.JSON) {
-            exporter = new JsonExporter(report, new PrintStream(baos));
-        } else {
-            throw new IllegalStateException(String.format("Choosen exporter %s not handled, this cannot happen.", reportType));
-        }
+        Exporter exporter = exporterFactory.newExporter(report, exportType, baos);
         exporter.export();
 
 
+        String error = null;
         try {
             activeReportDelivery.deliver(reportType, exportType, baos.toByteArray());
         } catch (ReportDeliveryException ex) {
+            error = ex.getMessage();
             System.err.println(ex.getMessage());
         }
 
-
-        Map<String, Object> model = Map.of(
-                "title", String.format("%s %s export", reportType.getDisplayName(), exportType),
-                "export", baos.toString());
+        Map<String, Object> model = new HashMap<>();
+        model.put("title", String.format("%s %s export", reportType.getDisplayName(), exportType));
+        model.put("error", error);
+        model.put("export", exportToString(exportType, baos));
         return render(model, "templates/export-report.html.vm");
+    }
+
+    private String exportToString(ExportType exportType, ByteArrayOutputStream baos) {
+        // INFO: after refactoring the Cli and Web classes to rely on an ExportFactory in order
+        // to share the same exporter instantiation logic between the two classes the way HTML
+        // export result is presented needed to be moved *after* the export happened, otherwise
+        // this could have been done only by code modification that would disrupt the flow of the
+        // companion videos narrative, hence *this* code.
+        if (exportType == ExportType.HTML) {
+            ByteArrayOutputStream temp = new ByteArrayOutputStream();
+            try {
+                baos.writeTo(new HtmlEscaperOutputStream(temp));
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+            return temp.toString();
+        }
+        return baos.toString();
     }
 
 }

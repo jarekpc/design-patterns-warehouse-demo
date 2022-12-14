@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public abstract class Cli extends AbstractApp implements Runnable {
+public class Cli implements Runnable {
 
     static final class MenuOption {
 
@@ -88,15 +88,18 @@ public abstract class Cli extends AbstractApp implements Runnable {
 
     private final List<MenuOption> reportDeliveryOptions = new ArrayList<>();
     private final List<String> args;
+
+    private final ExporterFactory exporterFactory;
     private final Warehouse warehouse;
 
     private final List<ReportDelivery> reportDeliveries;
     private ReportDelivery activeReportDelivery;
 
-    public Cli(List<String> args, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
+    public Cli(List<String> args, ExporterFactory exporterFactory, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
         this.reportDeliveries =  reportDeliveries;
+        this.exporterFactory = exporterFactory;
 
         activeReportDelivery = reportDeliveries.get(0);
 
@@ -286,7 +289,7 @@ public abstract class Cli extends AbstractApp implements Runnable {
     }
 
     private void doReportExport(Report report, ExportType type, PrintStream out) {
-        Exporter exporter = newExporter(report, type, out);
+        Exporter exporter = exporterFactory.newExporter(report, type, out);
         exporter.export();
     }
 
@@ -376,6 +379,4 @@ public abstract class Cli extends AbstractApp implements Runnable {
         orders.forEach(o -> System.out.printf(fmt, o.getId(), o.getDate(), o.getCustomer().getName(),
                 o.getCustomer().getId(), o.getTotalPrice(), o.isPending() ? "pending" : "fulfilled"));
     }
-
-    abstract Exporter newExporter(Report report, ExportType type, PrintStream out);
 }
