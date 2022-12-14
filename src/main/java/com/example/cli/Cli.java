@@ -235,7 +235,11 @@ public final class Cli extends AbstractApp implements Runnable {
         CopyByteArrayOutputStream cos = new CopyByteArrayOutputStream(System.out);
         doReportExport(report, exportType, new PrintStream(cos));
 
-        reportDelivery.deliver(reportType, exportType, cos.toByteArray());
+        try {
+            reportDelivery.deliver(reportType, exportType, cos.toByteArray());
+        } catch (ReportDeliveryException ex) {
+            System.err.println(ex.getMessage());
+        }
     }
 
     private void doReportExport(Report report, ExportType type, PrintStream out) {
