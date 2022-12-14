@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public final class Cli extends AbstractApp implements Runnable {
+public abstract class Cli extends AbstractApp implements Runnable {
 
     static final class MenuOption {
 
@@ -286,20 +286,25 @@ public final class Cli extends AbstractApp implements Runnable {
     }
 
     private void doReportExport(Report report, ExportType type, PrintStream out) {
-        Exporter exporter;
-        if (type == ExportType.CSV) {
-            exporter = new CsvExporter(report, out, true);
-        } else if (type == ExportType.TXT) {
-            exporter = new TxtExporter(report, out);
-        } else if (type == ExportType.HTML) {
-            exporter = new HtmlExporter(report, out);
-        } else if (type == ExportType.JSON) {
-            exporter = new JsonExporter(report, out);
-        } else {
-            throw new IllegalStateException(String.format("Choosen exporter %s not handled, this cannot happen.", type));
-        }
+        Exporter exporter = newExporter(report, type, out);
         exporter.export();
     }
+
+//    private void doReportExport(Report report, ExportType type, PrintStream out) {
+//        Exporter exporter;
+//        if (type == ExportType.CSV) {
+//            exporter = new CsvExporter(report, out, true);
+//        } else if (type == ExportType.TXT) {
+//            exporter = new TxtExporter(report, out);
+//        } else if (type == ExportType.HTML) {
+//            exporter = new HtmlExporter(report, out);
+//        } else if (type == ExportType.JSON) {
+//            exporter = new JsonExporter(report, out);
+//        } else {
+//            throw new IllegalStateException(String.format("Choosen exporter %s not handled, this cannot happen.", type));
+//        }
+//        exporter.export();
+//    }
 
     private void doProductList() throws WarehouseException {
         Collection<Product> croducts = warehouse.getProducts();
@@ -371,4 +376,6 @@ public final class Cli extends AbstractApp implements Runnable {
         orders.forEach(o -> System.out.printf(fmt, o.getId(), o.getDate(), o.getCustomer().getName(),
                 o.getCustomer().getId(), o.getTotalPrice(), o.isPending() ? "pending" : "fulfilled"));
     }
+
+    abstract Exporter newExporter(Report report, ExportType type, PrintStream out);
 }
