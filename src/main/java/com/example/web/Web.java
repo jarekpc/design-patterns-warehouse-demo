@@ -31,12 +31,16 @@ public class Web implements Runnable {
 
     private final List<String> args;
     private final Warehouse warehouse;
-    private final ReportDelivery reportDelivery;
+    private final List<ReportDelivery> reportDeliveries;
 
-    public Web(List<String> args, Warehouse warehouse, ReportDelivery reportDelivery) {
+    private ReportDelivery activeReportDelivery;
+
+    public Web(List<String> args, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
-        this.reportDelivery = reportDelivery;
+        this.reportDeliveries = reportDeliveries;
+
+        activeReportDelivery = reportDeliveries.get(0);
     }
 
     public void run() {
@@ -176,7 +180,7 @@ public class Web implements Runnable {
 
 
         try {
-            reportDelivery.deliver(reportType, exportType, baos.toByteArray());
+            activeReportDelivery.deliver(reportType, exportType, baos.toByteArray());
         } catch (ReportDeliveryException ex) {
             System.err.println(ex.getMessage());
         }

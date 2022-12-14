@@ -29,7 +29,8 @@ public final class Cli extends AbstractApp implements Runnable {
             new MenuOption(2, "Manage customers"),
             new MenuOption(3, "Manage orders"),
             new MenuOption(4, "Export reports"),
-            new MenuOption(5, "Exit program")
+            new MenuOption(5, "Settings"),
+            new MenuOption(6, "Exit program")
     );
 
     private static final List<MenuOption> PRODUCT_OPTIONS = List.of(
@@ -61,12 +62,18 @@ public final class Cli extends AbstractApp implements Runnable {
             new MenuOption(2, "Go back to previous menu")
     );
 
+    private static final List<MenuOption> SETTINGS = List.of(
+            new MenuOption(1, "Configure report delivery"),
+            new MenuOption(2, "Go back to previous menu")
+    );
+
 
     private static final Map<Integer, List<MenuOption>> SUB_MENU_OPTIONS = Map.of(
             1, PRODUCT_OPTIONS,
             2, CUSTOMER_OPTIONS,
             3, ORDER_OPTIONS,
-            4, REPORT_OPTIONS
+            4, REPORT_OPTIONS,
+            5, SETTINGS
     );
 
     private static final List<MenuOption> EXPORT_OPTIONS = new ArrayList<>();
@@ -79,16 +86,32 @@ public final class Cli extends AbstractApp implements Runnable {
         EXPORT_OPTIONS.add(new MenuOption(EXPORT_OPTIONS.size() + 1, "Go back to previous menu"));
     }
 
+    private final List<MenuOption> reportDeliveryOptions = new ArrayList<>();
     private final List<String> args;
     private final Warehouse warehouse;
-    private final ReportDelivery reportDelivery;
 
-    public Cli(List<String> args, Warehouse warehouse, ReportDelivery reportDelivery) {
+    private final List<ReportDelivery> reportDeliveries;
+    private ReportDelivery activeReportDelivery;
+
+    public Cli(List<String> args, Warehouse warehouse, List<ReportDelivery> reportDeliveries) {
         this.args = args;
         this.warehouse = warehouse;
-        this.reportDelivery = reportDelivery;
+        this.reportDeliveries =  reportDeliveries;
+
+        activeReportDelivery = reportDeliveries.get(0);
+
+        createReportDeliveryOptions();
+
     }
 
+    private void createReportDeliveryOptions() {
+        int i;
+        for (i = 0; i < reportDeliveries.size(); i++) {
+            ReportDelivery reportDelivery = reportDeliveries.get(i);
+            reportDeliveryOptions.add(new MenuOption(i + 1, String.format("Switch to '%s'", reportDelivery.getName())));
+        }
+        reportDeliveryOptions.add(new MenuOption(i + 1, "Go back to previous menu"));
+    }
     public void run() {
 
         while (true) {
@@ -167,9 +190,29 @@ public final class Cli extends AbstractApp implements Runnable {
             doOrderAction(subMenuChoice);
         } else if (mainMenuChoice == 4) {
             doReportAction(subMenuChoice);
+        } else if(mainMenuChoice == 5){
+            doSettingsAction(subMenuChoice);
         } else {
-            throw new IllegalStateException("There are only 3 main menu options, this cannot happen.");
+            throw new IllegalStateException("There are no such menu option, this cannot happen.");
         }
+    }
+
+    private void doSettingsAction(int subMenuChoice) {
+        if (subMenuChoice == 1) {
+            doConfigureReportDelivery();
+        } else {
+            throw new IllegalStateException("There are no such menu option, this cannot happen.");
+        }
+    }
+
+    private void doConfigureReportDelivery() {
+        displayMenu(reportDeliveryOptions);
+        int reportDeliveryChoice = chooseMenuOption(reportDeliveryOptions);
+        if (reportDeliveryChoice == -1) {
+            return;
+        }
+        activeReportDelivery = reportDeliveries.get(reportDeliveryChoice - 1);
+        System.out.println(String.format("Selected '%s'.", activeReportDelivery.getName()));
     }
 
     private void doProductAction(int subMenuChoice) {
@@ -236,7 +279,7 @@ public final class Cli extends AbstractApp implements Runnable {
         doReportExport(report, exportType, new PrintStream(cos));
 
         try {
-            reportDelivery.deliver(reportType, exportType, cos.toByteArray());
+            activeReportDelivery.deliver(reportType, exportType, cos.toByteArray());
         } catch (ReportDeliveryException ex) {
             System.err.println(ex.getMessage());
         }
