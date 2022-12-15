@@ -1,7 +1,9 @@
 package com.example;
 
 import com.example.cli.Cli;
-import com.example.warehouse.*;
+import com.example.warehouse.DependencyFactory;
+import com.example.warehouse.Warehouse;
+import com.example.warehouse.Warehouses;
 import com.example.warehouse.delivery.DirectoryReportDelivery;
 import com.example.warehouse.delivery.EmailReportDelivery;
 import com.example.warehouse.delivery.NoReportDelivery;
@@ -12,13 +14,18 @@ import javax.mail.internet.AddressException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main {
-    private static final boolean FULL_VERSION = Boolean.valueOf(
-            System.getProperty("FULL_VERSION", "true"));//if true show plot report
+public class App implements Runnable {
 
-    public static void main(String[] args) {
-        List<String> arguments = List.of(args);
+    private final List<String> arguments;
+    private final DependencyFactory dependencyFactory;
 
+    public App(List<String> arguments, DependencyFactory dependencyFactory) {
+        this.arguments = arguments;
+        this.dependencyFactory = dependencyFactory;
+    }
+
+    @Override
+    public void run() {
         checkClientId(arguments);
         int clientId = parseClientId(arguments.get(0));
 
@@ -33,9 +40,6 @@ public class Main {
             return;
         }
 
-        DependencyFactory dependencyFactory = FULL_VERSION
-                ? new FullDependencyFactory()
-                : new TrialDependencyFactory();
         new Web(arguments, dependencyFactory, warehouse, reportDeliveries).run();
         new Cli(arguments, dependencyFactory, warehouse, reportDeliveries).run();
 

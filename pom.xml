@@ -15,6 +15,7 @@
 
     <modules>
       <module>demo-app</module>
+        <module>demo-app-full</module>
     </modules>
 
     <dependencyManagement>
