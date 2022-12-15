@@ -394,7 +394,7 @@ public class Cli implements Runnable {
             }
         }
         String fmt = String.format("\t%%%ss\t\t%%%ss%%n", maxIdWidth, maxNameWidth);
-        customers.forEach(c -> System.out.printf(fmt, c.getId(), c.getName()));
+        customers.forEach(c -> System.out.printf(fmt, c.getId(), c.getName(), c.getCompany()));
     }
 
     private void doOrderList() throws WarehouseException {
