@@ -5,13 +5,8 @@ import com.example.warehouse.dal.InventoryDao;
 import com.example.warehouse.dal.OrderDao;
 import com.example.warehouse.dal.ProductDao;
 import com.example.warehouse.service.ExternalCustomerService;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;

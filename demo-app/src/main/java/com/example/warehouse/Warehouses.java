@@ -2,6 +2,7 @@ package com.example.warehouse;
 
 import com.example.warehouse.dal.*;
 import com.example.warehouse.service.ExternalCustomerService;
+import com.example.warehouse.service.ExternalCustomerServiceImpl;
 
 public final class Warehouses {
 
@@ -13,7 +14,7 @@ public final class Warehouses {
 
         ReportGeneration reportGeneration = createReportGeneration(clientId, orderDao);
 
-        ExternalCustomerService externalCustomerService = new ExternalCustomerService();
+        ExternalCustomerService externalCustomerService = new ExternalCustomerServiceImpl();
 
         return new Warehouse(productDao, customerDao, inventoryDao, orderDao, reportGeneration, externalCustomerService);
     }
@@ -26,7 +27,7 @@ public final class Warehouses {
 
         ReportGeneration reportGeneration = createReportGeneration(clientId, orderDao);
 
-        ExternalCustomerService externalCustomerService = new ExternalCustomerService();
+        ExternalCustomerService externalCustomerService = new ExternalCustomerServiceImpl();
 
         return new Warehouse(productDao, customerDao, inventoryDao, orderDao, reportGeneration, externalCustomerService);
     }
